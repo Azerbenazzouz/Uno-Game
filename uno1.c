@@ -158,11 +158,9 @@ void game(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int PlayersNumb
     PlayerIndex=0;
     inv=0;
 
-
     do{
         PlayerTour(Game_Cards,Last_Card,Game_Players,PlayersNumber,PlayerIndex,inv);
         PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
-        printf("h33========>");
         Print_Card(Last_Card);
     }while(!check_End(Game_Players,PlayersNumber));
 }
@@ -199,7 +197,7 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
         printf("Donner La posision de la carte qui vous choisir : ");
         scanf("%d",&choix);
         choix-=1;
-    }while(!(0<choix && choix<=Game_Players[PlayerIndex].CardsNumber && Card_Compatibility(Last_Card,Game_Players[PlayerIndex].CardsList[choix])));
+    }while(!(0<=choix && choix<=Game_Players[PlayerIndex].CardsNumber && Card_Compatibility(Last_Card,Game_Players[PlayerIndex].CardsList[choix])));
 
     // change etat du la carte qui a etait dans la table
     RetrunToCards(Last_Card);
@@ -216,15 +214,17 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
         default:break;
     }
 
-
 }
 
 
 void plus2(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int PlayersNumber,int inv){
     int PlayerIndex,CardsNumber;
+
     PlayerIndex=LastPlayerIndex;
     CardsNumber=(Game_Players[LastPlayerIndex].CardsNumber);
+    
     PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
+    
     Game_Players[PlayerIndex].CardsList[CardsNumber+1] = Get_Card(Game_Cards);
     Game_Players[PlayerIndex].CardsList[CardsNumber+2] = Get_Card(Game_Cards);
     Game_Players[PlayerIndex].CardsNumber+=2;
@@ -232,14 +232,19 @@ void plus2(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int Players
 }
 
 void plus4(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int PlayersNumber,int inv){
-    int PlayerIndex;
+    int PlayerIndex,CardsNumber;
 
+    PlayerIndex=LastPlayerIndex;
+    CardsNumber=(Game_Players[LastPlayerIndex].CardsNumber);
+    
     PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
-    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+1] = Get_Card(Game_Cards);
-    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+2] = Get_Card(Game_Cards);
-    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+3] = Get_Card(Game_Cards);
-    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+4] = Get_Card(Game_Cards);
-    Game_Players[LastPlayerIndex].CardsNumber+=4;
+
+    Game_Players[PlayerIndex].CardsList[CardsNumber+1] = Get_Card(Game_Cards);
+    Game_Players[PlayerIndex].CardsList[CardsNumber+2] = Get_Card(Game_Cards);
+    Game_Players[PlayerIndex].CardsList[CardsNumber+3] = Get_Card(Game_Cards);
+    Game_Players[PlayerIndex].CardsList[CardsNumber+4] = Get_Card(Game_Cards);
+    Game_Players[PlayerIndex].CardsNumber+=4;
+
 
 }
 
@@ -273,9 +278,11 @@ int Card_Compatibility(Card *Last_Card,Card *Choosen_Card){
 int check_End(Player *Game_Players,int PlayersNumber){
     int Total_Complite;
 
+    Total_Complite=0;
     for(int i=0;i<PlayersNumber;i++){
         Total_Complite=Total_Complite+Game_Players[i].CardsNumber;
     }
+
     if(Total_Complite==1){
         return 1;
     }else{
