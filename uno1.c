@@ -157,8 +157,8 @@ void game(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int PlayersNumb
 
     PlayerIndex=0;
     inv=0;
-    
-    
+
+
     do{
         PlayerTour(Game_Cards,Last_Card,Game_Players,PlayersNumber,PlayerIndex,inv);
         PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
@@ -186,7 +186,7 @@ void PlayerIndexBoucle(int *PlayerIndex,int PlayersNumber,int inv){
 
 void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int PlayersNumber,int PlayerIndex,int inv){
     int choix;
-    
+
     //afficher le tour du jeueur
     printf("C'est le tour du %s\n",Game_Players[PlayerIndex].name);
     printf("Dans la Table : \n");
@@ -200,48 +200,59 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
         scanf("%d",&choix);
         choix-=1;
     }while(!(0<choix && choix<=Game_Players[PlayerIndex].CardsNumber && Card_Compatibility(Last_Card,Game_Players[PlayerIndex].CardsList[choix])));
-    
+
     // change etat du la carte qui a etait dans la table
     RetrunToCards(Last_Card);
-    
-    //Last_Card=NULL;
+
     //change la derniere carte
     PutCard(Game_Players,Last_Card,PlayerIndex,choix);
-    //Print_Card(Last_Card);
-    //Last_Card=PutCard2(Game_Players,Last_Card,PlayerIndex,choix);
-    
-    /*
-        switch (Game_Players[PlayerIndex].CardsList[choix]->value) {
-            case 10:break;
-            default:break;
-        }
-    */
+
+    //les fonction des cartes spesiale
+    switch (Game_Players[PlayerIndex].CardsList[choix]->value) {
+        case 10:plus2(Game_Cards,Game_Players,PlayerIndex,PlayersNumber,inv);break;
+        case 11:if(inv==0){inv=1;}else{inv=0;};break;
+        case 13:break;
+        case 14:plus4(Game_Cards,Game_Players,PlayerIndex,inv);break;
+        default:break;
+    }
+
 
 }
+
+
+void plus2(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int PlayersNumber,int inv){
+    int PlayerIndex,CardsNumber;
+    PlayerIndex=LastPlayerIndex;
+    CardsNumber=(Game_Players[LastPlayerIndex].CardsNumber);
+    PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
+    Game_Players[PlayerIndex].CardsList[CardsNumber+1] = Get_Card(Game_Cards);
+    Game_Players[PlayerIndex].CardsList[CardsNumber+2] = Get_Card(Game_Cards);
+    Game_Players[PlayerIndex].CardsNumber+=2;
+
+}
+
+void plus4(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int PlayersNumber,int inv){
+    int PlayerIndex;
+
+    PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
+    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+1] = Get_Card(Game_Cards);
+    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+2] = Get_Card(Game_Cards);
+    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+3] = Get_Card(Game_Cards);
+    Game_Players[LastPlayerIndex].CardsList[Game_Players[LastPlayerIndex].CardsNumber+4] = Get_Card(Game_Cards);
+    Game_Players[LastPlayerIndex].CardsNumber+=4;
+
+}
+
 
 void RetrunToCards(Card *CardReturn){
     (CardReturn)->etat=0;
 }
 
 
-// void PutCard(Player *Game_Players,Card **Last_Card,int PlayerIndex,int choix){
-//     //change la derniere carte
-//     *(Last_Card)=Game_Players[PlayerIndex].CardsList[choix];
-//     Print_Card(Last_Card);
-//     for(int i = choix; i < Game_Players[PlayerIndex].CardsNumber; i++)
-//     {
-//         Game_Players[PlayerIndex].CardsList[i] = Game_Players[PlayerIndex].CardsList[i+1];
-//     }
-//     Game_Players[PlayerIndex].CardsList[Game_Players[PlayerIndex].CardsNumber] = NULL;
-//     Game_Players[PlayerIndex].CardsNumber-=1;
+void PutCard(Player *Game_Players, Card *Last_Card, int PlayerIndex, int choix) {
 
-// }
-
-void PutCard(Player *Game_Players, Card **Last_Card, int PlayerIndex, int choix) {
     // Change the last card
-    //**Last_Card=(Card*)calloc(1,sizeof(Card));
-
-    Last_Card= Game_Players[PlayerIndex].CardsList[choix];
+    (*(Last_Card))=(*(Game_Players[PlayerIndex].CardsList[choix]));
 
     for (int i = choix; i < Game_Players[PlayerIndex].CardsNumber; i++) {
         Game_Players[PlayerIndex].CardsList[i] = Game_Players[PlayerIndex].CardsList[i+1];
@@ -250,19 +261,6 @@ void PutCard(Player *Game_Players, Card **Last_Card, int PlayerIndex, int choix)
     Game_Players[PlayerIndex].CardsNumber -= 1;
 }
 
-
-int PutCard2(Player *Game_Players,int PlayerIndex,int choix){
-    Card *Last_Card;
-    //change la derniere carte
-    Last_Card=Game_Players[PlayerIndex].CardsList[choix];
-    for(int i = choix; i < Game_Players[PlayerIndex].CardsNumber; i++)
-    {
-        Game_Players[PlayerIndex].CardsList[i] = Game_Players[PlayerIndex].CardsList[i+1];
-    }
-    Game_Players[PlayerIndex].CardsList[Game_Players[PlayerIndex].CardsNumber] = NULL;
-    Game_Players[PlayerIndex].CardsNumber-=1;
-    return (Last_Card);
-}
 
 int Card_Compatibility(Card *Last_Card,Card *Choosen_Card){
     if(Last_Card->color==Choosen_Card->color || Last_Card->value==Choosen_Card->value){
@@ -294,7 +292,7 @@ int main(){
 
     //reservation dans la memoire
     Game_Cards = (Card*)calloc(NUM_CARDS,sizeof(Card));
-    //Last_Card = (Card*)calloc(1,sizeof(Card));
+    Last_Card = (Card*)calloc(1,sizeof(Card));
     Game_Players = (Player*)calloc(Cards_Init_Number,sizeof(Player));
 
     // initialisation du tableux des carte pour jeux
