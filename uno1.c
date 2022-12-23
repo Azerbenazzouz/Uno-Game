@@ -29,7 +29,7 @@ typedef struct {
 
 void init_Game_Cards(Card *Game_Cards){
     int Cards_index;
-    char *colors[]={'R','Y','B','G'};
+    char *colors[]={'R','Y','B','G','N'};
 
     Cards_index=0;
     for(int i=0;i<4;i++){
@@ -61,12 +61,12 @@ void init_Game_Cards(Card *Game_Cards){
             }
         }
         //Joker
-        (Game_Cards+Cards_index)->color=colors[i];
+        (Game_Cards+Cards_index)->color=colors[4];
         (Game_Cards+Cards_index)->value=13;
         (Game_Cards+Cards_index)->etat=0;
         Cards_index=Cards_index+1;
         //+4
-        (Game_Cards+Cards_index)->color=colors[i];
+        (Game_Cards+Cards_index)->color=colors[4];
         (Game_Cards+Cards_index)->value=14;
         (Game_Cards+Cards_index)->etat=0;
         Cards_index=Cards_index+1;
@@ -87,18 +87,21 @@ int *Get_Card(Card *Game_Cards){
         index = rand()%NUM_CARDS;
     }while((Game_Cards+index)->etat!=0);
     (Game_Cards+index)->etat=1;
-    return (Game_Cards+index);
 
+    return (Game_Cards+index);
 }
 
 void init_Game_Players(Player *Game_Players,Card *Game_Cards,int *PlayersNumber){
     int Player_index,*Card_Pointer;
+
     Player_index=0;
+
     //avoir le nombre de jeueur attention le nombre comporte entre 1 et 4
     do{
         printf("Donner le nombre des jeueur : ");
         scanf("%d",PlayersNumber);
     }while(*PlayersNumber>4 || *PlayersNumber<1);
+
     //boucle pour remplir les donner de liste des jeueur le nom les carte des jeueur le nombre des carte pour chaque jeueur
     for(int i=0;i<*PlayersNumber;i++){
         //init name
@@ -130,11 +133,10 @@ void print_Game_Players(Player *Game_Players,int PlayersNumber){
     }
 }
 
-
 void print_Player_Cards(Player *Game_Players,int PlayerIndex){
     Card *Cards_Number_Pointer;
 
-    printf("%s\t %d\n",(Game_Players+PlayerIndex)->name,(Game_Players+PlayerIndex)->CardsNumber);
+    printf("Jeueur : %s\t Nombre des cardes : %d\n",(Game_Players+PlayerIndex)->name,(Game_Players+PlayerIndex)->CardsNumber);
     for(int i=0;i<(Game_Players+PlayerIndex)->CardsNumber;i++){
         Cards_Number_Pointer = (Game_Players+PlayerIndex)->CardsList[i];
         Print_Card(Cards_Number_Pointer);
@@ -152,17 +154,25 @@ void Print_Card(Card *_Card){
     }
 }
 
-void game(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int PlayersNumber,int inv){
+void game(Card *Game_Cards,Card *Last_Card,Player *Game_Players,int PlayersNumber,int inv){
     int PlayerIndex;
 
     PlayerIndex=0;
     inv=0;
-
+    // check if the first card in the game is +4 or joker
+    if((Last_Card)->color=='N'){
+        do{
+            printf("Choisir la couleur R:rouge Y:jaune B:bleu G:vert : ");
+            scanf("%c",Last_Card->color);
+        }while(Last_Card->color!='R' && Last_Card->color!='Y' && Last_Card->color!='B' && Last_Card->color!='G');
+    }
+    //boucle de jeu
     do{
         PlayerTour(Game_Cards,Last_Card,Game_Players,PlayersNumber,PlayerIndex,inv);
         PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
         Print_Card(Last_Card);
     }while(!check_End(Game_Players,PlayersNumber));
+
 }
 
 void PlayerIndexBoucle(int *PlayerIndex,int PlayersNumber,int inv){
@@ -186,10 +196,11 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
     int choix;
 
     //afficher le tour du jeueur
-    printf("C'est le tour du %s\n",Game_Players[PlayerIndex].name);
+    printf("=====C'est le tour du %s =====\n",Game_Players[PlayerIndex].name);
     printf("Dans la Table : \n");
     Print_Card(Last_Card);
     printf("Vous cartes : \n");
+    printf("Si Vous n'a pas autre solution saisir 0\n");
     print_Player_Cards(Game_Players,PlayerIndex);
 
     //choisir la carte qui vous voulez jouer et verifier si la carte est compatible avec la derniere carte dans la table ou pas si non il faut choisir une autre carte compatible avec la derniere carte dans la table et si oui il faut changer la derniere carte dans la table et changer l'etat de la carte qui a etait dans la table et changer l'etat de la carte qui a etait jouer et changer le nombre des carte du jeueur qui a jouer la carte
@@ -209,6 +220,7 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
     switch (Game_Players[PlayerIndex].CardsList[choix]->value) {
         case 10:plus2(Game_Cards,Game_Players,PlayerIndex,PlayersNumber,inv);break;
         case 11:if(inv==0){inv=1;}else{inv=0;};break;
+        case 12:PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);break;
         case 13:break;
         case 14:plus4(Game_Cards,Game_Players,PlayerIndex,inv);break;
         default:break;
@@ -216,15 +228,37 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
 
 }
 
+int solution(Card *Last_Card,Card *PlayerCards,int PlayerCardsNumber){
+    int i=0;
+    while(i<PlayerCardsNumber){
+        if(Card_Compatibility(Last_Card,PlayerCards[i])){
+            return i;
+        }
+        i++;
+    }
+    return 0;
+}
+
+// void Rech_Plus4OuJoker(Card *Last_Card,Card *PlayerCards,int PlayerCardsNumber,int *choix){
+//     int i=0;
+//     while(i<PlayerCardsNumber){
+//         if(PlayerCards[i]->value==13 || PlayerCards[i]->value==14){
+//             *choix=i;
+//             return;
+//         }
+//         i++;
+//     }
+// }
+
 
 void plus2(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int PlayersNumber,int inv){
     int PlayerIndex,CardsNumber;
 
     PlayerIndex=LastPlayerIndex;
     CardsNumber=(Game_Players[LastPlayerIndex].CardsNumber);
-    
+
     PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
-    
+
     Game_Players[PlayerIndex].CardsList[CardsNumber+1] = Get_Card(Game_Cards);
     Game_Players[PlayerIndex].CardsList[CardsNumber+2] = Get_Card(Game_Cards);
     Game_Players[PlayerIndex].CardsNumber+=2;
@@ -236,7 +270,7 @@ void plus4(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int Players
 
     PlayerIndex=LastPlayerIndex;
     CardsNumber=(Game_Players[LastPlayerIndex].CardsNumber);
-    
+
     PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
 
     Game_Players[PlayerIndex].CardsList[CardsNumber+1] = Get_Card(Game_Cards);
@@ -245,20 +279,28 @@ void plus4(Card *Game_Cards,Player *Game_Players,int LastPlayerIndex,int Players
     Game_Players[PlayerIndex].CardsList[CardsNumber+4] = Get_Card(Game_Cards);
     Game_Players[PlayerIndex].CardsNumber+=4;
 
-
 }
 
 
 void RetrunToCards(Card *CardReturn){
+    // change l'etat de la carte qui a etait dans la table
     (CardReturn)->etat=0;
+    // change la couleur de la carte qui a etait dans la table
+    if((CardReturn)->value==13 || (CardReturn)->value==14){
+        (CardReturn)->color='N';
+    }
+
 }
 
 
 void PutCard(Player *Game_Players, Card *Last_Card, int PlayerIndex, int choix) {
+    // Change l'etat de la carte qui a etait jouer dans la table si elle +4 ou joker elle change la couleur
+    RetrunToCards(Last_Card);
 
     // Change the last card
     (*(Last_Card))=(*(Game_Players[PlayerIndex].CardsList[choix]));
 
+    // Supprimer la carte de la liste des cartes du joueur
     for (int i = choix; i < Game_Players[PlayerIndex].CardsNumber; i++) {
         Game_Players[PlayerIndex].CardsList[i] = Game_Players[PlayerIndex].CardsList[i+1];
     }
