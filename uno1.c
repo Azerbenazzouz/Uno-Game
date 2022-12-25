@@ -163,12 +163,12 @@ void game(Card *Game_Cards,Card *Last_Card,Player *Game_Players,int PlayersNumbe
     if((Last_Card)->color=='N'){
         do{
             printf("Choisir la couleur R:rouge Y:jaune B:bleu G:vert : ");
-            scanf("%c",Last_Card->color);
+            scanf("%c",(Last_Card)->color);
         }while(Last_Card->color!='R' && Last_Card->color!='Y' && Last_Card->color!='B' && Last_Card->color!='G');
     }
     //boucle de jeu
     do{
-        PlayerTour(Game_Cards,Last_Card,Game_Players,PlayersNumber,PlayerIndex,inv);
+        PlayerTour(Game_Cards,Last_Card,Game_Players,PlayersNumber,&PlayerIndex,&inv);
         PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
         Print_Card(Last_Card);
     }while(!check_End(Game_Players,PlayersNumber));
@@ -190,41 +190,48 @@ void PlayerIndexBoucle(int *PlayerIndex,int PlayersNumber,int inv){
             *PlayerIndex-=1;
         }
     }
+
 }
 
-void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int PlayersNumber,int PlayerIndex,int inv){
+void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int PlayersNumber,int *PlayerIndex,int *inv){
     int choix;
 
     //afficher le tour du jeueur
-    printf("=====C'est le tour du %s =====\n",Game_Players[PlayerIndex].name);
+    printf("=====C'est le tour du %s =====\n",Game_Players[*PlayerIndex].name);
     printf("Dans la Table : \n");
     Print_Card(Last_Card);
     printf("Vous cartes : \n");
     printf("Si Vous n'a pas autre solution saisir 0\n");
-    print_Player_Cards(Game_Players,PlayerIndex);
+    print_Player_Cards(Game_Players,*PlayerIndex);
 
     //choisir la carte qui vous voulez jouer et verifier si la carte est compatible avec la derniere carte dans la table ou pas si non il faut choisir une autre carte compatible avec la derniere carte dans la table et si oui il faut changer la derniere carte dans la table et changer l'etat de la carte qui a etait dans la table et changer l'etat de la carte qui a etait jouer et changer le nombre des carte du jeueur qui a jouer la carte
     do{
         printf("Donner La posision de la carte qui vous choisir : ");
         scanf("%d",&choix);
         choix-=1;
-    }while(!(0<=choix && choix<=Game_Players[PlayerIndex].CardsNumber && Card_Compatibility(Last_Card,Game_Players[PlayerIndex].CardsList[choix])));
+    }while(!(0<=choix && choix<=Game_Players[*PlayerIndex].CardsNumber && Card_Compatibility(Last_Card,Game_Players[*PlayerIndex].CardsList[choix])));
+
+    //les fonction des cartes spesiale
+
+    switch (Game_Players[*PlayerIndex].CardsList[choix]->value) {
+        case 10:plus2(Game_Cards,Game_Players,*PlayerIndex,PlayersNumber,*inv);break;
+        case 11:if(*inv==0){
+                    *inv=1;
+                }else{
+                    *inv=0;
+                };break;
+        case 12:PlayerIndexBoucle(PlayerIndex,PlayersNumber,*inv);break;// yelzemm tzidd tfaker fiha choiya
+        case 13:break;
+        case 14:plus4(Game_Cards,Game_Players,*PlayerIndex,*inv);break;
+        default:break;
+    }
 
     // change etat du la carte qui a etait dans la table
     RetrunToCards(Last_Card);
 
     //change la derniere carte
-    PutCard(Game_Players,Last_Card,PlayerIndex,choix);
+    PutCard(Game_Players,Last_Card,*PlayerIndex,choix);
 
-    //les fonction des cartes spesiale
-    switch (Game_Players[PlayerIndex].CardsList[choix]->value) {
-        case 10:plus2(Game_Cards,Game_Players,PlayerIndex,PlayersNumber,inv);break;
-        case 11:if(inv==0){inv=1;}else{inv=0;};break;
-        case 12:PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);break;
-        case 13:break;
-        case 14:plus4(Game_Cards,Game_Players,PlayerIndex,inv);break;
-        default:break;
-    }
 
 }
 
