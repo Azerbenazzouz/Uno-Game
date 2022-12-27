@@ -25,6 +25,7 @@ typedef struct {
     char name[100];
     Card *CardsList[NUM_CARDS];
     int CardsNumber;
+    int points;
 }Player;
 
 void init_Game_Cards(Card *Game_Cards){
@@ -116,6 +117,9 @@ void init_Game_Players(Player *Game_Players,Card *Game_Cards,int *PlayersNumber)
 
         //cards Number
         (Game_Players+Player_index)->CardsNumber=Cards_Init_Number;
+        
+        //points
+        (Game_Players+Player_index)->points=0;
 
         //incerment Player index
         Player_index=Player_index+1;
@@ -159,12 +163,32 @@ void game(Card *Game_Cards,Card *Last_Card,Player *Game_Players,int PlayersNumbe
 
     PlayerIndex=0;
     inv=0;
+
     // check if the first card in the game is +4 or joker
     if((Last_Card)->value=='N'){
         do{
             printf("Choisir la couleur R:rouge Y:jaune B:bleu G:vert : ");
-            scanf("%c",*(Last_Card)->color);
+            scanf("%c",((Last_Card)->color));
         }while(Last_Card->color!='R' && Last_Card->color!='Y' && Last_Card->color!='B' && Last_Card->color!='G');
+    }
+
+    //check if the first card in the game is +2
+    if((Last_Card)->value==10){
+        PlayerIndexBoucle(&PlayerIndex,PlayersNumber,1);
+        plus2(Game_Cards,Last_Card,Game_Players,PlayersNumber,&PlayerIndex,&inv);
+        PlayerIndex=0;
+        printf("%s a piocher deux carte car la premiere carte est +2\n",Game_Players[PlayerIndex].name);
+    }
+    //check if the first card in the game is Inverce
+    if((Last_Card)->value==11){
+        PlayerIndexBoucle(&PlayerIndex,PlayersNumber,1);
+        inv=1;
+        printf("Le sense de la partie est inversée car la premiere carte est inverse\n");
+    }
+    //check if the first card in the game is Passe
+    if((Last_Card)->value==12){
+        PlayerIndexBoucle(&PlayerIndex,PlayersNumber,inv);
+        printf("%s a passe son tour car la premiere carte est passe\n",Game_Players[PlayerIndex].name);
     }
     //boucle de jeu
     do{
@@ -233,8 +257,8 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
                 PutCard(Game_Players,Last_Card,*PlayerIndex,choix);
                 do{
                     printf("Choisir la couleur R:rouge Y:jaune B:bleu G:vert : ");
-                    scanf("%c",*(Last_Card)->color);
-                }while(Last_Card->color!='R' && Last_Card->color!='Y' && Last_Card->color!='B' && Last_Card->color!='G');
+                    scanf("%c",(*Last_Card)->color);
+                }while((*Last_Card)->color!='R' && (*Last_Card)->color!='Y' && (*Last_Card)->color!='B' && (*Last_Card)->color!='G');
                 break;// joker 🥺😒
         case 14:RetrunToCards(Last_Card);
                 PutCard(Game_Players,Last_Card,*PlayerIndex,choix);
@@ -252,6 +276,24 @@ void PlayerTour(Card *Game_Cards,Card **Last_Card,Player *Game_Players,int Playe
     // PutCard(Game_Players,Last_Card,*PlayerIndex,choix);
 
 }
+//(0<=choix && choix<=Game_Players[*PlayerIndex].CardsNumber && Card_Compatibility(Last_Card,Game_Players[*PlayerIndex].CardsList[choix])));
+
+// int verifier_choix( int choix,Player *Game_Players,int *PlayerIndex ,Card *Last_Card){
+//     int Ok;
+//     if(!(0<=choix && choix<=Game_Players[*PlayerIndex].CardsNumber)){
+//         return 0;
+//     }else{
+//         if(!(Card_Compatibility(Last_Card,Game_Players[*PlayerIndex].CardsList[choix]))){
+//             if(){
+                
+//             }else{
+//                 return 0;
+//             }
+//         }else{
+//             return 1;
+//         }
+//     }
+// }
 
 int solution(Card *Last_Card,Card *PlayerCards,int PlayerCardsNumber){
     int i=0;
